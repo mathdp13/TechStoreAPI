@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>TechStore - Gestão Profissional</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background: #f0f2f5; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .form-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; }
+        button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-add { background: #28a745; }
+        .btn-save { background: #007bff; }
+        .btn-del { background: #dc3545; }
+        /* Estilo do novo botão de Logout */
+        .btn-logout { background: #6c757d; float: right; }
+        .btn-logout:hover { background: #5a6268; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; clear: both; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
+        th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="btn-logout" onclick="sair()">Sair</button>
+    
+    <h2>📦 Cadastrar Novo Produto</h2>
+    <div class="form-group">
+        <input type="text" id="novoNome" placeholder="Nome do Produto">
+        <input type="number" id="novoPreco" placeholder="Preço">
+        <button class="btn-add" onclick="cadastrarProduto()">Adicionar</button>
+    </div>
+
+    <h2>📋 Lista de Stock</h2>
+    <table id="tabelaProdutos">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Preço</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+
+if (localStorage.getItem('logado') !== 'true') {
+    window.location.href = 'login.html';
+}
+
+// Função para deslogar
+function sair() {
+    localStorage.removeItem('logado');
+    window.location.href = 'login.html';
+}
+    const API_URL = 'http://localhost:5082/api/produtos';
+
+    // 1. READ (Listar)
+    async function listarProdutos() {
+        try {
+            const response = await fetch(API_URL);
+            const produtos = await response.json();
+            const tbody = document.querySelector('#tabelaProdutos tbody');
+            tbody.innerHTML = '';
+            
+            produtos.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td><input type="text" id="nome-${p.id}" value="${p.nome}"></td>
+                        <td><input type="number" id="preco-${p.id}" value="${p.preco}"></td>
+                        <td>
+                            <button class="btn-save" onclick="atualizarProduto(${p.id})">Salvar</button>
+                            <button class="btn-del" onclick="apagarProduto(${p.id})">Apagar</button>
+                        </td>
+                    </tr>`;
+            });
+        } catch (error) {
+            console.error("Erro ao listar:", error);
+        }
+    }
+
+    // 2. CREATE (Adicionar)
+    async function cadastrarProduto() {
+        const nome = document.getElementById('novoNome').value;
+        const preco = document.getElementById('novoPreco').value;
+
+        const dados = { Nome: nome, Preco: parseFloat(preco) };
+
+        await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+        
+        document.getElementById('novoNome').value = '';
+        document.getElementById('novoPreco').value = '';
+        listarProdutos();
+    }
+
+    // 3. UPDATE (Atualizar)
+    async function atualizarProduto(id) {
+        const nome = document.getElementById(`nome-${id}`).value;
+        const preco = document.getElementById(`preco-${id}`).value;
+
+        const dados = {
+            Id: id,
+            Nome: nome,
+            Preco: parseFloat(preco)
+        };
+
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        if (response.ok) {
+            alert("Produto atualizado!");
+            listarProdutos();
+        } else {
+            alert("Erro ao atualizar. Verifica o console (F12).");
+        }
+    }
+
+    // 4. DELETE (Apagar)
+    async function apagarProduto(id) {
+        if (confirm("Deseja mesmo apagar este produto?")) {
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            listarProdutos();
+        }
+    }
+
+    listarProdutos();
+</script>
+
+</body>
+</html>

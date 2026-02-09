@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>TechStore - Novo Usuário</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; }
+        .card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 300px; }
+        h2 { text-align: center; color: #333; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; border: none; border-radius: 5px; background: #28a745; color: white; cursor: pointer; font-weight: bold; }
+        .link { display: block; text-align: center; margin-top: 15px; color: #007bff; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Criar Conta</h2>
+    <input type="text" id="user" placeholder="Escolha um Usuário">
+    <input type="password" id="pass" placeholder="Defina uma Senha">
+    <button onclick="registrar()">Cadastrar</button>
+    <a href="login.html" class="link">Já tenho conta? Entrar</a>
+    <div id="mensagem" style="text-align: center; margin-top: 10px;"></div>
+</div>
+
+<script>
+    async function registrar() {
+        const username = document.getElementById('user').value;
+        const senhaHash = document.getElementById('pass').value;
+
+        try {
+            const response = await fetch('http://localhost:5082/api/usuarios/registrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, senhaHash })
+            });
+
+            if (response.ok) {
+                alert("Usuário criado com sucesso!");
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('mensagem').innerText = "Erro ao registrar!";
+            }
+        } catch (error) {
+            document.getElementById('mensagem').innerText = "Erro ao conectar com a API.";
+        }
+    }
+</script>
+</body>
+</html>
