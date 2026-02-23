@@ -16,6 +16,8 @@ Autenticação: JWT (JSON Web Token)
 
 Documentação: Swagger (OpenAPI)
 
+-------------------------
+
 🎯 O Problema
 Em cenários de e-commerce e gestão de estoque, a falta de uma interface centralizada e segura para o controle de produtos e pedidos pode gerar inconsistências nos dados e falhas de segurança. O TechStoreAPI foi desenvolvido para resolver a necessidade de um sistema backend performático que garanta:
 
@@ -24,6 +26,8 @@ Integridade dos Dados: Evitando pedidos sem produtos ou com estoque insuficiente
 Segurança de Acesso: Garantindo que apenas usuários autorizados realizem operações críticas.
 
 Escalabilidade: Permitindo que o sistema cresça sem perder organização, graças à arquitetura em camadas.
+
+----------------
 
 🏗️ Arquitetura e Padrões
 O projeto foi desenvolvido focando em Clean Code e separação de responsabilidades:
@@ -36,6 +40,8 @@ Service: Lógica de negócio e validações.
 
 API: Controllers e configuração de injeção de dependência.
 
+-----------------------------
+
 🛠️ Funcionalidades Principais
 Gestão de Produtos: CRUD completo com validações de estoque.
 
@@ -44,6 +50,8 @@ Processamento de Pedidos: Fluxo de criação de ordens de compra e cálculo auto
 Segurança: Hash de senhas com BCrypt.Net e autenticação via JWT (JSON Web Token).
 
 Persistência: Migrations para versionamento do esquema do banco de dados.
+
+------------------------
 
 🏁 Como Rodar o Projeto
 1. Clone o repositório:
