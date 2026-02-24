@@ -1,12 +1,12 @@
-FROM mcr.microsft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["TechStore.Api/TechStore.Api.csproj", "TechStore.Api/"]
 RUN dotnet restore "TechStore.Api/TechStore.Api.csproj"
-COPY COPY . .
+COPY . .
 WORKDIR "/src/TechStore.Api"
 RUN dotnet build -c Release -o /app/build
 
-FROM mcr.microsft.com/dotnet/aspnet:8.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 EXPOSE 8080
 COPY --from=build /app/build .
