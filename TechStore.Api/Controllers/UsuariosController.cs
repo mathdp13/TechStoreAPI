@@ -44,4 +44,12 @@ public class UsuariosController : ControllerBase
 
         return Ok(new { mensagem = "Login realizado com sucesso!" });
     }
+
+    // NOVO: Método para listar usuários e conferir no Swagger
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
+    {
+        // Retorna a lista de todos os usuários cadastrados no banco
+        return await _context.Usuarios.ToListAsync();
+    }
 }
