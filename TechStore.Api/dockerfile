@@ -1,13 +1,22 @@
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["TechStore.Api/TechStore.Api.csproj", "TechStore.Api/"]
-RUN dotnet restore "TechStore.Api/TechStore.Api.csproj"
+
+
+COPY ["TechStore.Api.csproj", "./"]
+RUN dotnet restore "TechStore.Api.csproj"
+
+
 COPY . .
-WORKDIR "/src/TechStore.Api"
-RUN dotnet build -c Release -o /app/build
+
+
+RUN dotnet build "TechStore.Api.csproj" -c Release -o /app/build
+
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 EXPOSE 8080
+
+# AJUSTE 4: Garante que o binário copiado seja o correto
 COPY --from=build /app/build .
 ENTRYPOINT ["dotnet", "TechStore.Api.dll"]
