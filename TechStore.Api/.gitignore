@@ -2,4 +2,4 @@
 *.db-journal
 bin/
 obj/
-.dockerignore
+.dockerignoredocker compose up -d --build

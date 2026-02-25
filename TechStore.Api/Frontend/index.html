@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <script>
+        if (localStorage.getItem('logado') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
     <meta charset="UTF-8">
     <title>TechStore - Gestão Profissional</title>
     <style>
@@ -13,9 +18,16 @@
         .btn-add { background: #28a745; }
         .btn-save { background: #007bff; }
         .btn-del { background: #dc3545; }
-        /* Estilo do novo botão de Logout */
         .btn-logout { background: #6c757d; float: right; }
-        .btn-logout:hover { background: #5a6268; }
+        
+        /* ESTILOS DOS MODAIS */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: white; margin: 15% auto; padding: 25px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-btns { display: flex; justify-content: space-around; margin-top: 25px; gap: 10px; }
+        .btn-secondary { background: #6c757d; flex: 1; }
+        .btn-confirm-save { background: #007bff; flex: 1; }
+        .btn-confirm-del { background: #dc3545; flex: 1; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 20px; clear: both; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
         th { background: #f8f9fa; }
@@ -47,20 +59,42 @@
     </table>
 </div>
 
+<div id="modalExcluir" class="modal">
+    <div class="modal-content">
+        <h3 style="color: #dc3545;">🗑️ Excluir Produto?</h3>
+        <p>Tem certeza que deseja apagar este item permanentemente?</p>
+        <div class="modal-btns">
+            <button class="btn-secondary" onclick="fecharModais()">Cancelar</button>
+            <button class="btn-confirm-del" id="confirmarDelBtn">Excluir</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalSalvar" class="modal">
+    <div class="modal-content">
+        <h3 style="color: #007bff;">💾 Confirmar Alteração?</h3>
+        <p>Deseja salvar as modificações feitas neste produto?</p>
+        <div class="modal-btns">
+            <button class="btn-secondary" onclick="fecharModais()">Retomar</button>
+            <button class="btn-confirm-save" id="confirmarSaveBtn">OK</button>
+        </div>
+    </div>
+</div>
+
 <script>
-
-if (localStorage.getItem('logado') !== 'true') {
-    window.location.href = 'login.html';
-}
-
-// Função para deslogar
-function sair() {
-    localStorage.removeItem('logado');
-    window.location.href = 'login.html';
-}
     const API_URL = 'http://localhost:5082/api/produtos';
+    let produtoSelecionado = null;
 
-    // 1. READ (Listar)
+    function sair() {
+        localStorage.removeItem('logado');
+        window.location.href = 'login.html';
+    }
+
+    function fecharModais() {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        produtoSelecionado = null;
+    }
+
     async function listarProdutos() {
         try {
             const response = await fetch(API_URL);
@@ -75,69 +109,64 @@ function sair() {
                         <td><input type="text" id="nome-${p.id}" value="${p.nome}"></td>
                         <td><input type="number" id="preco-${p.id}" value="${p.preco}"></td>
                         <td>
-                            <button class="btn-save" onclick="atualizarProduto(${p.id})">Salvar</button>
-                            <button class="btn-del" onclick="apagarProduto(${p.id})">Apagar</button>
+                            <button class="btn-save" onclick="abrirModalSalvar(${p.id})">Salvar</button>
+                            <button class="btn-del" onclick="abrirModalExcluir(${p.id})">Apagar</button>
                         </td>
                     </tr>`;
             });
-        } catch (error) {
-            console.error("Erro ao listar:", error);
-        }
+        } catch (error) { console.error("Erro ao listar:", error); }
     }
 
-    // 2. CREATE (Adicionar)
+    // MODAL EXCLUIR
+    function abrirModalExcluir(id) {
+        produtoSelecionado = id;
+        document.getElementById('modalExcluir').style.display = 'block';
+    }
+
+    document.getElementById('confirmarDelBtn').onclick = async function() {
+        if (produtoSelecionado) {
+            await fetch(`${API_URL}/${produtoSelecionado}`, { method: 'DELETE' });
+            fecharModais();
+            listarProdutos();
+        }
+    };
+
+    // MODAL SALVAR
+    function abrirModalSalvar(id) {
+        produtoSelecionado = id;
+        document.getElementById('modalSalvar').style.display = 'block';
+    }
+
+    document.getElementById('confirmarSaveBtn').onclick = async function() {
+        if (produtoSelecionado) {
+            const id = produtoSelecionado;
+            const nome = document.getElementById(`nome-${id}`).value;
+            const preco = document.getElementById(`preco-${id}`).value;
+
+            await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Id: id, Nome: nome, Preco: parseFloat(preco) })
+            });
+            fecharModais();
+            listarProdutos();
+        }
+    };
+
     async function cadastrarProduto() {
         const nome = document.getElementById('novoNome').value;
         const preco = document.getElementById('novoPreco').value;
-
-        const dados = { Nome: nome, Preco: parseFloat(preco) };
-
         await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
+            body: JSON.stringify({ Nome: nome, Preco: parseFloat(preco) })
         });
-        
         document.getElementById('novoNome').value = '';
         document.getElementById('novoPreco').value = '';
         listarProdutos();
     }
 
-    // 3. UPDATE (Atualizar)
-    async function atualizarProduto(id) {
-        const nome = document.getElementById(`nome-${id}`).value;
-        const preco = document.getElementById(`preco-${id}`).value;
-
-        const dados = {
-            Id: id,
-            Nome: nome,
-            Preco: parseFloat(preco)
-        };
-
-        const response = await fetch(`${API_URL}/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
-        });
-
-        if (response.ok) {
-            alert("Produto atualizado!");
-            listarProdutos();
-        } else {
-            alert("Erro ao atualizar. Verifica o console (F12).");
-        }
-    }
-
-    // 4. DELETE (Apagar)
-    async function apagarProduto(id) {
-        if (confirm("Deseja mesmo apagar este produto?")) {
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-            listarProdutos();
-        }
-    }
-
     listarProdutos();
 </script>
-
 </body>
 </html>
