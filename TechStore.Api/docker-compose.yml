@@ -5,7 +5,7 @@ services:
       dockerfile: TechStore.Api/Dockerfile
     ports:
       - "8080:8080"
-    enviroment:
+    environment:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Data Source=/app/data/techstore.db
     volumes:
